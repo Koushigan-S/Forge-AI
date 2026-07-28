@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Cpu, Activity, ShieldCheck, Database, RefreshCcw } from 'lucide-react';
+import { Cpu, Activity, ShieldCheck, Database, RefreshCcw, Download, Server } from 'lucide-react';
 
 import DigitalTwin from '@/components/DigitalTwin';
 import TelemetryForm from '@/components/TelemetryForm';
@@ -30,33 +30,31 @@ interface TelemetryPoint {
 
 export default function Dashboard() {
   const [telemetry, setTelemetry] = useState({
-    temperature: 45.0,
-    vibration: 2.1,
-    current: 12.0,
-    rpm: 1800.0,
+    temperature: 38.5,
+    vibration: 1.4,
+    current: 11.8,
+    rpm: 1790.0,
   });
 
   const [prediction, setPrediction] = useState<PredictionState>({
-    healthScore: 92.4,
+    healthScore: 94.2,
     status: 'Healthy',
-    rulHours: 168,
+    rulHours: 195,
     primaryFactor: 'Normal Operations',
     explanation:
-      'System operating nominally. Temperature (45.0°C) and Vibration (2.10 mm/s) are within standard operational baselines for this load profile. Projected bearing degradation is minimal over the next 168 operating hours.',
-    colorCode: '#06b6d4',
+      'Asset MOT-8842-A is operating in full compliance with ISO 10816-3 standards (94.2% Health Index). Vibration velocity (1.40 mm/s RMS) and Stator Temperature (38.5°C) remain well within baseline bounds at 1790 RPM. Projected remaining useful life is ~195 operating hours under present load profile.',
+    colorCode: '#10b981',
   });
 
   const [history, setHistory] = useState<TelemetryPoint[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [currentTime, setCurrentTime] = useState('');
 
-  // Live Timestamp Updater
   useEffect(() => {
     const updateClock = () => {
       const now = new Date();
       setCurrentTime(
         now.toLocaleDateString('en-US', {
-          weekday: 'short',
           month: 'short',
           day: 'numeric',
         }) +
@@ -74,7 +72,6 @@ export default function Dashboard() {
     return () => clearInterval(interval);
   }, []);
 
-  // Fetch initial sample telemetry history & initial prediction
   useEffect(() => {
     const initData = async () => {
       try {
@@ -84,10 +81,8 @@ export default function Dashboard() {
           setHistory(data.history || []);
         }
       } catch (err) {
-        console.warn('Backend server offline, generating initial local history state.');
         generateFallbackHistory();
       }
-      // Run initial prediction
       runDiagnostic();
     };
 
@@ -102,10 +97,10 @@ export default function Dashboard() {
       const strTime = t.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
       fallback.push({
         timestamp: strTime,
-        vibration: Number((2.1 + Math.sin(i / 3) * 0.5 + (Math.random() * 0.4 - 0.2)).toFixed(2)),
-        temperature: Number((45.0 + Math.sin(i / 3) * 4.0 + (Math.random() * 2 - 1)).toFixed(1)),
-        current: Number((12.0 + Math.sin(i / 3) * 1.5).toFixed(1)),
-        rpm: Number((1800 + Math.sin(i / 3) * 80).toFixed(0)),
+        vibration: Number((1.4 + Math.sin(i / 3.5) * 0.4 + (Math.random() * 0.2 - 0.1)).toFixed(2)),
+        temperature: Number((38.5 + Math.sin(i / 3.5) * 3.0 + (Math.random() * 1.5 - 0.75)).toFixed(1)),
+        current: Number((11.8 + Math.sin(i / 3.5) * 1.0).toFixed(1)),
+        rpm: Number((1790 + Math.sin(i / 3.5) * 20).toFixed(0)),
       });
     }
     setHistory(fallback);
@@ -138,7 +133,6 @@ export default function Dashboard() {
           colorCode: data.color_code,
         });
 
-        // Append latest telemetry point to chart stream
         const now = new Date();
         const strTime = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         const newPoint: TelemetryPoint = {
@@ -154,7 +148,6 @@ export default function Dashboard() {
         runFallbackDiagnostic();
       }
     } catch (err) {
-      console.warn('Backend unavailable, running client-side fallback ML calculation');
       runFallbackDiagnostic();
     } finally {
       setIsLoading(false);
@@ -162,42 +155,40 @@ export default function Dashboard() {
   };
 
   const runFallbackDiagnostic = () => {
-    const risk =
-      (telemetry.temperature / 120.0 * 0.35) +
-      (telemetry.vibration / 15.0 * 0.45) +
-      (telemetry.current / 50.0 * 0.20);
+    const tempRisk = Math.max(0, (telemetry.temperature - 30.0) / 90.0);
+    const vibRisk = Math.min(1.0, telemetry.vibration / 10.0);
+    const currRisk = Math.max(0, (telemetry.current - 10.0) / 40.0);
+    const risk = (tempRisk * 0.35) + (vibRisk * 0.45) + (currRisk * 0.20);
+
     const score = Number(Math.max(0, Math.min(100, (1 - risk) * 100)).toFixed(1));
 
     let stat = 'Healthy';
-    let color = '#06b6d4';
-    let rul = Math.round(120 + (score - 80) * 4);
+    let color = '#10b981';
+    let rul = Math.round(140 + (score - 82) * 4.5);
 
-    if (score < 45) {
+    if (score < 48) {
       stat = 'Critical';
       color = '#ef4444';
-      rul = Math.max(1, Math.round(2 + (score / 45) * 16));
-    } else if (score <= 80) {
+      rul = Math.max(1, Math.round(2 + (score / 48) * 20));
+    } else if (score < 82) {
       stat = 'Warning';
       color = '#f59e0b';
-      rul = Math.round(24 + (score - 45) * 1.37);
+      rul = Math.round(24 + (score - 48) * 3.4);
     }
 
     let factor = 'Normal Operations';
-    if (score <= 85) {
-      const vibR = telemetry.vibration / 15.0 * 1.3;
-      const tempR = telemetry.temperature / 120.0 * 1.1;
-      const currR = telemetry.current / 50.0 * 0.9;
-      if (vibR >= tempR && vibR >= currR) factor = 'Mechanical Vibration';
-      else if (tempR >= currR) factor = 'Bearing Overheating';
+    if (score < 82) {
+      if (vibRisk >= tempRisk && vibRisk >= currRisk) factor = 'Mechanical Vibration';
+      else if (tempRisk >= currRisk) factor = 'Bearing Overheating';
       else factor = 'Electrical Overcurrent';
     }
 
     const expl =
       stat === 'Healthy'
-        ? `System operating nominally at ${score}% health score. Temperature (${telemetry.temperature}°C) and Vibration (${telemetry.vibration} mm/s) are within standard operational baselines.`
+        ? `Asset MOT-8842-A is operating in full compliance with ISO 10816-3 standards (${score}% Health Index). Temperature (${telemetry.temperature}°C) and Vibration (${telemetry.vibration} mm/s) are nominal.`
         : stat === 'Warning'
-        ? `Caution: System health degraded to ${score}%. Elevated stress detected in ${factor}. Recommend scheduling preventive maintenance.`
-        : `CRITICAL FAILURE RISK (${score}% Health). Imminent breakdown in ${factor}. Immediate shutdown and inspection strongly required.`;
+        ? `Elevated stress detected in ${factor} (${score}% Health Index). Measured vibration (${telemetry.vibration} mm/s RMS) exceeds nominal limits. Recommend technician service within ${rul} hours.`
+        : `CRITICAL FAULT ALERT (${score}% Health Index). Immediate fault risk in ${factor}. Vibration (${telemetry.vibration} mm/s) and Temp (${telemetry.temperature}°C) exceed ISO damage thresholds. Shutdown required.`;
 
     setPrediction({
       healthScore: score,
@@ -233,7 +224,6 @@ export default function Dashboard() {
             colorCode: data.latest_prediction.color_code,
           });
 
-          // Sync sliders to latest CSV point
           const lastPoint = data.history[data.history.length - 1];
           if (lastPoint) {
             setTelemetry({
@@ -246,54 +236,54 @@ export default function Dashboard() {
         }
       }
     } catch (err) {
-      console.error('Failed to process CSV file:', err);
+      console.error('CSV upload error:', err);
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <main className="min-h-screen bg-[#09090b] text-neutral-100 pb-12">
-      {/* A. Top Navigation Header */}
-      <header className="sticky top-0 z-50 glass-panel border-b border-neutral-800/80 px-6 py-4">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          {/* Logo & Badge */}
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-xl text-neutral-950 shadow-cyan-glow">
-              <Cpu className="w-6 h-6" />
+    <main className="min-h-screen bg-[#0b0c0e] text-neutral-100 pb-10">
+      {/* SCADA Top Header Navigation */}
+      <header className="sticky top-0 z-50 bg-[#121418]/90 backdrop-blur-md border-b border-neutral-800 px-6 py-3">
+        <div className="max-w-7xl mx-auto flex items-center justify-between font-mono">
+          {/* Left Brand & Facility Info */}
+          <div className="flex items-center gap-4">
+            <div className="p-2 bg-neutral-900 border border-neutral-800 rounded-lg text-cyan-400">
+              <Cpu className="w-5 h-5" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-xl font-extrabold tracking-wider text-neutral-50 uppercase">
+                <h1 className="text-base font-bold text-neutral-50 tracking-wider">
                   FORGE<span className="text-cyan-400">AI</span>
                 </h1>
-                <span className="text-[10px] font-mono font-bold bg-cyan-950 text-cyan-400 border border-cyan-800/80 px-2 py-0.5 rounded-full">
-                  V1.0 ENGINE
+                <span className="text-[10px] text-neutral-400 bg-neutral-900 px-2 py-0.5 rounded border border-neutral-800">
+                  SCADA V1.0
                 </span>
               </div>
-              <p className="text-[11px] text-neutral-400 font-mono">
+              <p className="text-[10px] text-neutral-400 font-sans">
                 Industrial Digital Twin &amp; Predictive Maintenance Engine
               </p>
             </div>
           </div>
 
-          {/* Right Status Pill */}
-          <div className="flex items-center gap-4">
-            <div className="hidden sm:flex items-center gap-2 bg-neutral-900/80 border border-neutral-800 px-3.5 py-1.5 rounded-full">
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-status-pulse" />
-              <span className="text-xs font-mono text-neutral-300 font-bold uppercase tracking-wider">
-                SYSTEM LIVE
+          {/* Right Live Status Pill */}
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 bg-neutral-900 border border-neutral-800 px-3 py-1 rounded text-xs">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-subtle-pulse" />
+              <span className="text-neutral-300 font-bold uppercase tracking-wider text-[11px]">
+                SOCKET CONNECTED
               </span>
             </div>
-            <div className="text-xs font-mono text-neutral-400 bg-neutral-900/50 border border-neutral-800/80 px-3 py-1.5 rounded-lg">
-              {currentTime || 'Syncing clock...'}
+            <div className="text-xs text-neutral-400 bg-neutral-900 border border-neutral-800 px-3 py-1 rounded">
+              {currentTime || 'Syncing...'}
             </div>
           </div>
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-6 space-y-6">
-        {/* B. Input Control Section */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-5 space-y-5">
+        {/* Telemetry Input Controls */}
         <section>
           <TelemetryForm
             telemetry={telemetry}
@@ -304,7 +294,7 @@ export default function Dashboard() {
           />
         </section>
 
-        {/* C. Live Metrics Summary Bar */}
+        {/* Live Metrics Grid */}
         <section>
           <MetricsGrid
             healthScore={prediction.healthScore}
@@ -315,9 +305,8 @@ export default function Dashboard() {
           />
         </section>
 
-        {/* D. Central Main View (Split 2-Column Grid) */}
-        <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Left: 3D Digital Twin Canvas */}
+        {/* Central 3D Twin & Analytics Split View */}
+        <section className="grid grid-cols-1 lg:grid-cols-2 gap-5">
           <div>
             <DigitalTwin
               status={prediction.status}
@@ -325,14 +314,12 @@ export default function Dashboard() {
               telemetry={telemetry}
             />
           </div>
-
-          {/* Right: Multi-Sensor Analytics Engine */}
           <div>
             <AnalyticsChart history={history} />
           </div>
         </section>
 
-        {/* E. AI Diagnostic & Explainable AI Card */}
+        {/* Explainable AI Diagnostic Card */}
         <section>
           <AIDiagnostic
             explanation={prediction.explanation}

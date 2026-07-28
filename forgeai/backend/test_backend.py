@@ -25,7 +25,7 @@ class TestForgeAIBackend(unittest.TestCase):
         data = response.json()
         self.assertGreater(data["health_score"], 80)
         self.assertEqual(data["status"], "Healthy")
-        self.assertEqual(data["color_code"], "#06b6d4")
+        self.assertEqual(data["color_code"], "#10b981")
 
     def test_predict_critical(self):
         payload = {

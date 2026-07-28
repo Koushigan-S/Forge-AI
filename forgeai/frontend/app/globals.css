@@ -3,69 +3,84 @@
 @tailwind utilities;
 
 :root {
-  --background: 9 9 11;
-  --foreground: 250 250 250;
+  --background: 11 12 14;
+  --foreground: 240 242 245;
 }
 
 body {
   color: rgb(var(--foreground));
-  background-color: #09090b;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  background-color: #0b0c0e;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
 }
 
-/* Glassmorphic Surfaces */
-.glass-panel {
-  background: rgba(18, 18, 21, 0.7);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(39, 39, 42, 0.8);
+/* Human-designed Industrial Card Surfaces */
+.industrial-card {
+  background: rgba(20, 22, 26, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(38, 42, 51, 0.9);
 }
 
-.glass-panel-hover {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+.industrial-card-hover {
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.glass-panel-hover:hover {
-  border-color: rgba(6, 182, 212, 0.4);
-  box-shadow: 0 0 25px rgba(6, 182, 212, 0.15);
+.industrial-card-hover:hover {
+  border-color: rgba(6, 182, 212, 0.35);
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.5);
 }
 
-/* Custom Scrollbar */
+/* CAD Grid Background Pattern */
+.cad-grid-pattern {
+  background-size: 24px 24px;
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+}
+
+/* Precision Industrial Scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #09090b;
+  background: #0b0c0e;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #27272a;
-  border-radius: 9999px;
+  background: #282c37;
+  border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
   background: #06b6d4;
 }
 
-/* Glowing Pulse Keyframes */
-@keyframes statusPulse {
-  0% {
-    transform: scale(0.95);
-    opacity: 0.8;
-  }
-  50% {
-    transform: scale(1.05);
-    opacity: 1;
-  }
-  100% {
-    transform: scale(0.95);
-    opacity: 0.8;
-  }
+/* Clean Input Range Styling */
+input[type="range"] {
+  height: 6px;
+  border-radius: 3px;
+  background: #1e222b;
 }
 
-.animate-status-pulse {
-  animation: statusPulse 2s infinite ease-in-out;
+input[type="range"]::-webkit-slider-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #06b6d4;
+  border: 2px solid #0b0c0e;
+  cursor: pointer;
+  box-shadow: 0 0 8px rgba(6, 182, 212, 0.4);
+}
+
+@keyframes subtlePulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(0.98); }
+}
+
+.animate-subtle-pulse {
+  animation: subtlePulse 3s infinite ease-in-out;
 }
