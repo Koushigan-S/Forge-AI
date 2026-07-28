@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useRef } from 'react';
 import { Activity, Clock, ShieldAlert, HeartPulse } from 'lucide-react';
 
 interface MetricsGridProps {
@@ -9,6 +9,49 @@ interface MetricsGridProps {
   rulHours: number;
   primaryFactor: string;
   colorCode: string;
+}
+
+function TiltCard({ children, className = '' }: { children: React.ReactNode; className?: string }) {
+  const [tiltStyle, setTiltStyle] = useState({
+    transform: 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)',
+    transition: 'transform 0.5s ease-out',
+  });
+
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!cardRef.current) return;
+    const rect = cardRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left - rect.width / 2;
+    const y = e.clientY - rect.top - rect.height / 2;
+
+    const rotateX = (-y / (rect.height / 2)) * 10; // Max 10 deg tilt
+    const rotateY = (x / (rect.width / 2)) * 10; // Max 10 deg tilt
+
+    setTiltStyle({
+      transform: `perspective(1000px) rotateX(${rotateX.toFixed(2)}deg) rotateY(${rotateY.toFixed(2)}deg) scale3d(1.02, 1.02, 1.02)`,
+      transition: 'transform 0.1s ease-out',
+    });
+  };
+
+  const handleMouseLeave = () => {
+    setTiltStyle({
+      transform: 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)',
+      transition: 'transform 0.5s ease-out',
+    });
+  };
+
+  return (
+    <div
+      ref={cardRef}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      style={tiltStyle}
+      className={`glass-panel p-5 rounded-2xl border border-neutral-800 transition-all duration-300 hover:border-cyan-500/50 hover:shadow-cyan-glow cursor-pointer ${className}`}
+    >
+      {children}
+    </div>
+  );
 }
 
 export default function MetricsGrid({
@@ -34,7 +77,7 @@ export default function MetricsGrid({
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 w-full">
       {/* Card 1: Health Score Gauge */}
-      <div className="glass-panel p-5 rounded-2xl border border-neutral-800 flex items-center justify-between glass-panel-hover">
+      <TiltCard className="flex items-center justify-between">
         <div className="space-y-1">
           <div className="flex items-center gap-1.5 text-xs font-semibold text-neutral-400">
             <HeartPulse className="w-4 h-4 text-cyan-400" />
@@ -49,7 +92,7 @@ export default function MetricsGrid({
         </div>
 
         {/* SVG Circular Radial Progress Gauge */}
-        <div className="relative w-20 h-20 flex items-center justify-center">
+        <div className="relative w-20 h-20 flex items-center justify-center shrink-0">
           <svg className="w-full h-full transform -rotate-90">
             <circle
               cx="40"
@@ -76,10 +119,10 @@ export default function MetricsGrid({
             {Math.round(healthScore)}
           </span>
         </div>
-      </div>
+      </TiltCard>
 
       {/* Card 2: Predicted Condition */}
-      <div className="glass-panel p-5 rounded-2xl border border-neutral-800 flex flex-col justify-between glass-panel-hover">
+      <TiltCard className="flex flex-col justify-between">
         <div className="flex items-center justify-between">
           <span className="text-xs font-semibold text-neutral-400 flex items-center gap-1.5">
             <Activity className="w-4 h-4 text-cyan-400" />
@@ -107,10 +150,10 @@ export default function MetricsGrid({
         <div className="text-[11px] text-neutral-400 font-mono">
           AI Status Classification
         </div>
-      </div>
+      </TiltCard>
 
       {/* Card 3: Remaining Useful Life (RUL) */}
-      <div className="glass-panel p-5 rounded-2xl border border-neutral-800 flex flex-col justify-between glass-panel-hover">
+      <TiltCard className="flex flex-col justify-between">
         <div className="flex items-center justify-between">
           <span className="text-xs font-semibold text-neutral-400 flex items-center gap-1.5">
             <Clock className="w-4 h-4 text-cyan-400" />
@@ -130,10 +173,10 @@ export default function MetricsGrid({
         <div className="text-[11px] text-neutral-400 font-mono">
           Estimated Operating Horizon
         </div>
-      </div>
+      </TiltCard>
 
       {/* Card 4: Primary Risk Factor */}
-      <div className="glass-panel p-5 rounded-2xl border border-neutral-800 flex flex-col justify-between glass-panel-hover">
+      <TiltCard className="flex flex-col justify-between">
         <div className="flex items-center justify-between">
           <span className="text-xs font-semibold text-neutral-400 flex items-center gap-1.5">
             <ShieldAlert className="w-4 h-4 text-cyan-400" />
@@ -150,7 +193,7 @@ export default function MetricsGrid({
         <div className="text-[11px] text-neutral-400 font-mono">
           Dominant Stress Metric
         </div>
-      </div>
+      </TiltCard>
     </div>
   );
 }
