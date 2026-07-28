@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useRef } from 'react';
 import { Sparkles, BrainCircuit, Cpu } from 'lucide-react';
 
 interface AIDiagnosticProps {
@@ -10,15 +10,50 @@ interface AIDiagnosticProps {
 }
 
 export default function AIDiagnostic({ explanation, status, colorCode }: AIDiagnosticProps) {
+  const [tiltStyle, setTiltStyle] = useState({
+    transform: 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)',
+    transition: 'transform 0.5s ease-out',
+  });
+
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!cardRef.current) return;
+    const rect = cardRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left - rect.width / 2;
+    const y = e.clientY - rect.top - rect.height / 2;
+
+    const rotateX = (-y / (rect.height / 2)) * 10; // Max 10 deg tilt
+    const rotateY = (x / (rect.width / 2)) * 10; // Max 10 deg tilt
+
+    setTiltStyle({
+      transform: `perspective(1000px) rotateX(${rotateX.toFixed(2)}deg) rotateY(${rotateY.toFixed(2)}deg) scale3d(1.02, 1.02, 1.02)`,
+      transition: 'transform 0.1s ease-out',
+    });
+  };
+
+  const handleMouseLeave = () => {
+    setTiltStyle({
+      transform: 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)',
+      transition: 'transform 0.5s ease-out',
+    });
+  };
+
   return (
-    <div className="glass-panel p-6 rounded-2xl border border-neutral-800 relative overflow-hidden shadow-2xl glass-panel-hover">
+    <div
+      ref={cardRef}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      style={tiltStyle}
+      className="glass-panel p-6 rounded-2xl border border-neutral-800 relative overflow-hidden shadow-2xl transition-all duration-300 hover:border-cyan-500/50 hover:shadow-cyan-glow cursor-pointer"
+    >
       {/* Background Ambient Glow Accent */}
       <div
-        className="absolute -right-20 -bottom-20 w-64 h-64 rounded-full blur-3xl opacity-10 pointer-events-none"
+        className="absolute -right-20 -bottom-20 w-64 h-64 rounded-full blur-3xl opacity-15 pointer-events-none"
         style={{ backgroundColor: colorCode }}
       />
 
-      <div className="flex items-start gap-4">
+      <div className="flex items-start gap-4 relative z-10">
         {/* Sparkles Icon Container */}
         <div
           className="p-3 rounded-xl border shrink-0 mt-0.5 shadow-lg transition-colors duration-300"
@@ -38,8 +73,8 @@ export default function AIDiagnostic({ explanation, status, colorCode }: AIDiagn
               <h3 className="text-base font-bold text-neutral-100 tracking-wide flex items-center gap-2">
                 Explainable AI Diagnostic Engine
               </h3>
-              <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-cyan-950/60 text-cyan-400 border border-cyan-800/60 uppercase">
-                ML REASONING ACTIVE
+              <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-cyan-950/60 text-cyan-400 border border-cyan-800/60 uppercase tracking-wider">
+                3D INTERACTIVE TILT • ML REASONING
               </span>
             </div>
 

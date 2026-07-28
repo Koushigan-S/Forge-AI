@@ -8,6 +8,7 @@ import TelemetryForm from '@/components/TelemetryForm';
 import MetricsGrid from '@/components/MetricsGrid';
 import AnalyticsChart from '@/components/AnalyticsChart';
 import AIDiagnostic from '@/components/AIDiagnostic';
+import Preloader from '@/components/Preloader';
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
 
@@ -254,6 +255,9 @@ export default function Dashboard() {
 
   return (
     <main className="min-h-screen bg-[#09090b] text-neutral-100 pb-12">
+      {/* 3-Second Preloader Screen */}
+      <Preloader />
+
       {/* A. Top Navigation Header */}
       <header className="sticky top-0 z-50 glass-panel border-b border-neutral-800/80 px-6 py-4">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
