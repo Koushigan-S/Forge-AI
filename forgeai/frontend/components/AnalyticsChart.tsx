@@ -11,7 +11,7 @@ import {
   CartesianGrid,
   ReferenceLine,
 } from 'recharts';
-import { Activity, Radio, Table, BarChart2 } from 'lucide-react';
+import { Radio, LineChart as ChartIcon, Table as TableIcon, LayoutGrid } from 'lucide-react';
 
 interface TelemetryPoint {
   timestamp: string;
@@ -25,214 +25,311 @@ interface AnalyticsChartProps {
   history: TelemetryPoint[];
 }
 
+type ViewMode = 'graph' | 'table' | 'split';
+
 export default function AnalyticsChart({ history }: AnalyticsChartProps) {
   const [mounted, setMounted] = useState(false);
-  const [activeTab, setActiveTab] = useState<'chart' | 'table'>('chart');
+  const [viewMode, setViewMode] = useState<ViewMode>('graph');
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  // Compute telemetry summary stats
-  const avgVib =
-    history.length > 0
-      ? (history.reduce((acc, curr) => acc + curr.vibration, 0) / history.length).toFixed(2)
-      : '0.00';
-  const avgTemp =
-    history.length > 0
-      ? (history.reduce((acc, curr) => acc + curr.temperature, 0) / history.length).toFixed(1)
-      : '0.0';
-
   return (
-    <div className="industrial-card p-5 rounded-xl border border-neutral-800 w-full h-[460px] lg:h-[500px] flex flex-col justify-between">
-      {/* Header Toolbar */}
-      <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-neutral-800 font-mono">
-        <div className="flex items-center gap-2">
-          <Radio className="w-4 h-4 text-cyan-400 animate-pulse" />
-          <h3 className="text-sm font-semibold text-neutral-100 uppercase tracking-wider">
-            SCADA Sensor Time-Series Stream
-          </h3>
+    <div className="glass-panel p-6 rounded-2xl border border-neutral-800 w-full h-[450px] lg:h-[500px] flex flex-col justify-between overflow-hidden">
+      {/* Chart Header */}
+      <div className="flex flex-wrap items-center justify-between gap-4 pb-3 border-b border-neutral-800 shrink-0">
+        <div className="flex items-center gap-2.5">
+          <div className="p-2 bg-cyan-950/50 border border-cyan-800/50 rounded-lg text-cyan-400">
+            <Radio className="w-5 h-5 animate-pulse" />
+          </div>
+          <div>
+            <h3 className="text-base font-semibold text-neutral-100">
+              Multi-Sensor Time-Series Stream
+            </h3>
+            <p className="text-xs text-neutral-400 font-mono">
+              Live telemetry feed &amp; historical value log
+            </p>
+          </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          {/* Legend Badges */}
-          <div className="hidden sm:flex items-center gap-3 text-[11px]">
-            <div className="flex items-center gap-1.5 text-cyan-400">
-              <span className="w-2.5 h-0.5 bg-cyan-400 rounded-full" />
-              <span>Vib (mm/s RMS)</span>
-            </div>
-            <div className="flex items-center gap-1.5 text-amber-400">
-              <span className="w-2.5 h-0.5 bg-amber-400 rounded-full" />
-              <span>Temp (°C)</span>
-            </div>
-          </div>
-
-          {/* Chart / Table View Switcher */}
-          <div className="flex items-center bg-neutral-900 border border-neutral-800 rounded p-0.5 text-[11px]">
+        {/* View Mode Toggle & Legend Badges */}
+        <div className="flex flex-wrap items-center gap-3">
+          {/* View Mode Selector Tabs */}
+          <div className="flex items-center bg-neutral-900/90 border border-neutral-800 rounded-lg p-0.5">
             <button
-              onClick={() => setActiveTab('chart')}
-              className={`px-2.5 py-0.5 rounded flex items-center gap-1 transition-colors ${
-                activeTab === 'chart' ? 'bg-cyan-600 text-neutral-950 font-bold' : 'text-neutral-400 hover:text-neutral-200'
+              onClick={() => setViewMode('graph')}
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-mono transition-all ${
+                viewMode === 'graph'
+                  ? 'bg-cyan-500 text-neutral-950 font-bold shadow-cyan-glow'
+                  : 'text-neutral-400 hover:text-neutral-200'
               }`}
+              title="Graph View"
             >
-              <BarChart2 className="w-3 h-3" />
-              <span>Chart</span>
+              <ChartIcon className="w-3.5 h-3.5" />
+              <span>Graph</span>
             </button>
+
             <button
-              onClick={() => setActiveTab('table')}
-              className={`px-2.5 py-0.5 rounded flex items-center gap-1 transition-colors ${
-                activeTab === 'table' ? 'bg-cyan-600 text-neutral-950 font-bold' : 'text-neutral-400 hover:text-neutral-200'
+              onClick={() => setViewMode('table')}
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-mono transition-all ${
+                viewMode === 'table'
+                  ? 'bg-cyan-500 text-neutral-950 font-bold shadow-cyan-glow'
+                  : 'text-neutral-400 hover:text-neutral-200'
               }`}
+              title="Table View"
             >
-              <Table className="w-3 h-3" />
+              <TableIcon className="w-3.5 h-3.5" />
               <span>Table</span>
             </button>
+
+            <button
+              onClick={() => setViewMode('split')}
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-mono transition-all ${
+                viewMode === 'split'
+                  ? 'bg-cyan-500 text-neutral-950 font-bold shadow-cyan-glow'
+                  : 'text-neutral-400 hover:text-neutral-200'
+              }`}
+              title="Split View (Graph + Table)"
+            >
+              <LayoutGrid className="w-3.5 h-3.5" />
+              <span>Split</span>
+            </button>
           </div>
+
+          {/* Legend Custom Badges (Hidden in Table Mode for space) */}
+          {viewMode !== 'table' && (
+            <div className="hidden sm:flex items-center gap-3 text-[11px] font-mono">
+              <div className="flex items-center gap-1.5 bg-cyan-950/30 border border-cyan-900/50 px-2 py-0.5 rounded">
+                <span className="w-2 h-2 rounded-full bg-cyan-400" />
+                <span className="text-cyan-300">Vib (mm/s)</span>
+              </div>
+              <div className="flex items-center gap-1.5 bg-amber-950/30 border border-amber-900/50 px-2 py-0.5 rounded">
+                <span className="w-2 h-2 rounded-full bg-amber-400" />
+                <span className="text-amber-300">Temp (°C)</span>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Main Area */}
-      <div className="w-full h-full pt-3">
+      {/* Main Content Area: Graph, Table, or Split */}
+      <div className="w-full flex-1 pt-3 overflow-hidden">
         {mounted && history && history.length > 0 ? (
-          activeTab === 'chart' ? (
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={history} margin={{ top: 10, right: 15, left: -15, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="2 2" stroke="#222630" vertical={false} />
-                
-                <XAxis
-                  dataKey="timestamp"
-                  stroke="#525866"
-                  fontSize={10}
-                  tickLine={false}
-                  axisLine={{ stroke: '#222630' }}
-                  fontFamily="monospace"
-                />
-                
-                <YAxis
-                  yAxisId="left"
-                  stroke="#06b6d4"
-                  fontSize={10}
-                  tickLine={false}
-                  axisLine={{ stroke: '#222630' }}
-                  domain={[0, 15]}
-                  unit=" mm/s"
-                  fontFamily="monospace"
-                />
-                
-                <YAxis
-                  yAxisId="right"
-                  orientation="right"
-                  stroke="#f59e0b"
-                  fontSize={10}
-                  tickLine={false}
-                  axisLine={{ stroke: '#222630' }}
-                  domain={[0, 120]}
-                  unit="°C"
-                  fontFamily="monospace"
-                />
+          <div className="w-full h-full flex flex-col justify-between">
+            {/* View Mode 1: Graph Only */}
+            {viewMode === 'graph' && (
+              <div className="w-full h-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={history} margin={{ top: 10, right: 20, left: -10, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} />
+                    <XAxis
+                      dataKey="timestamp"
+                      stroke="#71717a"
+                      fontSize={11}
+                      tickLine={false}
+                      axisLine={{ stroke: '#27272a' }}
+                    />
+                    <YAxis
+                      yAxisId="left"
+                      stroke="#06b6d4"
+                      fontSize={11}
+                      tickLine={false}
+                      axisLine={{ stroke: '#27272a' }}
+                      domain={[0, 15]}
+                      unit=" mm/s"
+                    />
+                    <YAxis
+                      yAxisId="right"
+                      orientation="right"
+                      stroke="#f59e0b"
+                      fontSize={11}
+                      tickLine={false}
+                      axisLine={{ stroke: '#27272a' }}
+                      domain={[0, 120]}
+                      unit="°C"
+                    />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: '#121215',
+                        borderColor: '#27272a',
+                        borderRadius: '12px',
+                        boxShadow: '0 10px 25px rgba(0,0,0,0.5)',
+                        fontSize: '12px',
+                        fontFamily: 'monospace',
+                      }}
+                      itemStyle={{ color: '#e4e4e7' }}
+                      labelStyle={{ color: '#a1a1aa', fontWeight: 'bold', marginBottom: '4px' }}
+                    />
+                    <ReferenceLine
+                      yAxisId="left"
+                      y={7.0}
+                      stroke="#ef4444"
+                      strokeDasharray="4 4"
+                      label={{
+                        value: 'VIB THRESHOLD (7.0 mm/s)',
+                        fill: '#ef4444',
+                        fontSize: 10,
+                        position: 'insideTopLeft',
+                      }}
+                    />
+                    <ReferenceLine
+                      yAxisId="right"
+                      y={85.0}
+                      stroke="#ef4444"
+                      strokeDasharray="4 4"
+                      label={{
+                        value: 'TEMP THRESHOLD (85°C)',
+                        fill: '#ef4444',
+                        fontSize: 10,
+                        position: 'insideTopRight',
+                      }}
+                    />
+                    <Line
+                      yAxisId="left"
+                      type="monotone"
+                      dataKey="vibration"
+                      name="Vibration"
+                      stroke="#06b6d4"
+                      strokeWidth={2.5}
+                      dot={false}
+                      activeDot={{ r: 6, fill: '#00f0ff', stroke: '#09090b', strokeWidth: 2 }}
+                    />
+                    <Line
+                      yAxisId="right"
+                      type="monotone"
+                      dataKey="temperature"
+                      name="Temperature"
+                      stroke="#f59e0b"
+                      strokeWidth={2.5}
+                      dot={false}
+                      activeDot={{ r: 6, fill: '#f59e0b', stroke: '#09090b', strokeWidth: 2 }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            )}
 
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: '#14161a',
-                    borderColor: '#262933',
-                    borderRadius: '8px',
-                    boxShadow: '0 8px 20px rgba(0,0,0,0.6)',
-                    fontSize: '11px',
-                    fontFamily: 'monospace',
-                  }}
-                  itemStyle={{ color: '#e4e4e7' }}
-                  labelStyle={{ color: '#8e96a4', fontWeight: 'bold', marginBottom: '3px' }}
-                />
-
-                {/* ISO 10816-3 Threshold Lines */}
-                <ReferenceLine
-                  yAxisId="left"
-                  y={4.5}
-                  stroke="#f59e0b"
-                  strokeDasharray="3 3"
-                  label={{
-                    value: 'ISO Warning (4.5 mm/s)',
-                    fill: '#f59e0b',
-                    fontSize: 9,
-                    position: 'insideTopLeft',
-                  }}
-                />
-                
-                <ReferenceLine
-                  yAxisId="left"
-                  y={7.1}
-                  stroke="#ef4444"
-                  strokeDasharray="3 3"
-                  label={{
-                    value: 'ISO Alarm (7.1 mm/s)',
-                    fill: '#ef4444',
-                    fontSize: 9,
-                    position: 'insideTopLeft',
-                  }}
-                />
-
-                <Line
-                  yAxisId="left"
-                  type="monotone"
-                  dataKey="vibration"
-                  name="Vibration Velocity"
-                  stroke="#06b6d4"
-                  strokeWidth={2}
-                  dot={false}
-                  activeDot={{ r: 5, fill: '#00f0ff', stroke: '#0b0c0e', strokeWidth: 2 }}
-                />
-                
-                <Line
-                  yAxisId="right"
-                  type="monotone"
-                  dataKey="temperature"
-                  name="Stator Temperature"
-                  stroke="#f59e0b"
-                  strokeWidth={2}
-                  dot={false}
-                  activeDot={{ r: 5, fill: '#f59e0b', stroke: '#0b0c0e', strokeWidth: 2 }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          ) : (
-            /* Telemetry Data Table View */
-            <div className="w-full h-full overflow-y-auto border border-neutral-800 rounded font-mono text-xs">
-              <table className="w-full text-left border-collapse">
-                <thead className="bg-neutral-900 border-b border-neutral-800 text-[10px] text-neutral-400 sticky top-0">
-                  <tr>
-                    <th className="p-2">TIMESTAMP</th>
-                    <th className="p-2 text-cyan-400">VIB (mm/s)</th>
-                    <th className="p-2 text-amber-400">TEMP (°C)</th>
-                    <th className="p-2 text-emerald-400">CURRENT (A)</th>
-                    <th className="p-2 text-purple-400">SPEED (RPM)</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-neutral-800 text-[11px] text-neutral-300">
-                  {history.slice().reverse().map((row, i) => (
-                    <tr key={i} className="hover:bg-neutral-900/50">
-                      <td className="p-2 text-neutral-400">{row.timestamp}</td>
-                      <td className="p-2 text-cyan-400 font-bold">{row.vibration}</td>
-                      <td className="p-2 text-amber-400 font-bold">{row.temperature}</td>
-                      <td className="p-2 text-emerald-400">{row.current}</td>
-                      <td className="p-2 text-purple-400">{row.rpm}</td>
+            {/* View Mode 2: Table Only */}
+            {viewMode === 'table' && (
+              <div className="w-full h-full overflow-y-auto pr-1 border border-neutral-800 rounded-xl bg-neutral-950/60">
+                <table className="w-full text-left font-mono text-xs">
+                  <thead className="sticky top-0 bg-neutral-900 border-b border-neutral-800 text-[11px] text-neutral-400 uppercase">
+                    <tr>
+                      <th className="py-2.5 px-3">TIME</th>
+                      <th className="py-2.5 px-3 text-cyan-400">VIB (mm/s)</th>
+                      <th className="py-2.5 px-3 text-amber-400">TEMP (°C)</th>
+                      <th className="py-2.5 px-3 text-emerald-400">CURRENT (A)</th>
+                      <th className="py-2.5 px-3 text-purple-400">SPEED (RPM)</th>
+                      <th className="py-2.5 px-3 text-right">STATUS</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )
+                  </thead>
+                  <tbody className="divide-y divide-neutral-800/60 text-neutral-200">
+                    {[...history].reverse().map((row, idx) => {
+                      const isVibAlert = row.vibration >= 7.0;
+                      const isTempAlert = row.temperature >= 85.0;
+                      const isAlert = isVibAlert || isTempAlert;
+
+                      return (
+                        <tr key={idx} className="hover:bg-neutral-900/50 transition-colors">
+                          <td className="py-2 px-3 font-semibold text-neutral-300">{row.timestamp}</td>
+                          <td className={`py-2 px-3 font-bold ${isVibAlert ? 'text-red-400 bg-red-950/30' : 'text-cyan-400'}`}>
+                            {row.vibration.toFixed(2)}
+                          </td>
+                          <td className={`py-2 px-3 font-bold ${isTempAlert ? 'text-red-400 bg-red-950/30' : 'text-amber-400'}`}>
+                            {row.temperature.toFixed(1)}°C
+                          </td>
+                          <td className="py-2 px-3 text-emerald-400">{row.current.toFixed(1)} A</td>
+                          <td className="py-2 px-3 text-purple-400">{Math.round(row.rpm)}</td>
+                          <td className="py-2 px-3 text-right">
+                            <span
+                              className={`inline-block text-[10px] font-bold px-2 py-0.5 rounded border ${
+                                isAlert
+                                  ? 'bg-red-950/60 border-red-800 text-red-400'
+                                  : 'bg-emerald-950/60 border-emerald-800 text-emerald-400'
+                              }`}
+                            >
+                              {isAlert ? 'ALERT' : 'NOMINAL'}
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {/* View Mode 3: Split View (Graph Top, Table Bottom) */}
+            {viewMode === 'split' && (
+              <div className="w-full h-full grid grid-rows-2 gap-3">
+                {/* Upper Half: Compact Line Graph */}
+                <div className="w-full h-full min-h-0 border border-neutral-800 rounded-xl bg-neutral-950/40 p-2">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={history} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} />
+                      <XAxis dataKey="timestamp" stroke="#71717a" fontSize={9} tickLine={false} />
+                      <YAxis yAxisId="left" stroke="#06b6d4" fontSize={9} tickLine={false} domain={[0, 15]} />
+                      <YAxis yAxisId="right" orientation="right" stroke="#f59e0b" fontSize={9} tickLine={false} domain={[0, 120]} />
+                      <Tooltip
+                        contentStyle={{ backgroundColor: '#121215', borderColor: '#27272a', fontSize: '10px' }}
+                      />
+                      <Line yAxisId="left" type="monotone" dataKey="vibration" stroke="#06b6d4" strokeWidth={2} dot={false} />
+                      <Line yAxisId="right" type="monotone" dataKey="temperature" stroke="#f59e0b" strokeWidth={2} dot={false} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+
+                {/* Lower Half: Compact Telemetry Data Table */}
+                <div className="w-full h-full overflow-y-auto pr-1 border border-neutral-800 rounded-xl bg-neutral-950/60">
+                  <table className="w-full text-left font-mono text-[11px]">
+                    <thead className="sticky top-0 bg-neutral-900 border-b border-neutral-800 text-[10px] text-neutral-400 uppercase">
+                      <tr>
+                        <th className="py-1.5 px-2.5">TIME</th>
+                        <th className="py-1.5 px-2.5 text-cyan-400">VIB (mm/s)</th>
+                        <th className="py-1.5 px-2.5 text-amber-400">TEMP (°C)</th>
+                        <th className="py-1.5 px-2.5 text-emerald-400">CURR (A)</th>
+                        <th className="py-1.5 px-2.5 text-purple-400">RPM</th>
+                        <th className="py-1.5 px-2.5 text-right">STATUS</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-neutral-800/60 text-neutral-200">
+                      {[...history].reverse().map((row, idx) => {
+                        const isAlert = row.vibration >= 7.0 || row.temperature >= 85.0;
+                        return (
+                          <tr key={idx} className="hover:bg-neutral-900/50">
+                            <td className="py-1 px-2.5 font-semibold text-neutral-300">{row.timestamp}</td>
+                            <td className={`py-1 px-2.5 font-bold ${row.vibration >= 7.0 ? 'text-red-400' : 'text-cyan-400'}`}>
+                              {row.vibration.toFixed(2)}
+                            </td>
+                            <td className={`py-1 px-2.5 font-bold ${row.temperature >= 85.0 ? 'text-red-400' : 'text-amber-400'}`}>
+                              {row.temperature.toFixed(1)}°C
+                            </td>
+                            <td className="py-1 px-2.5 text-emerald-400">{row.current.toFixed(1)}</td>
+                            <td className="py-1 px-2.5 text-purple-400">{Math.round(row.rpm)}</td>
+                            <td className="py-1 px-2.5 text-right">
+                              <span
+                                className={`inline-block text-[9px] font-bold px-1.5 py-0.2 rounded border ${
+                                  isAlert ? 'bg-red-950/60 border-red-800 text-red-400' : 'bg-emerald-950/60 border-emerald-800 text-emerald-400'
+                                }`}
+                              >
+                                {isAlert ? 'ALERT' : 'NOMINAL'}
+                              </span>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+          </div>
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-neutral-500 font-mono text-xs">
-            Loading Time-Series Buffer...
+          <div className="w-full h-full flex items-center justify-center text-neutral-500 font-mono text-sm">
+            Initializing Telemetry Stream...
           </div>
         )}
-      </div>
-
-      {/* Footer Statistics */}
-      <div className="pt-2 border-t border-neutral-800 flex items-center justify-between text-[10px] font-mono text-neutral-400">
-        <div>AVG VIBRATION: <span className="text-cyan-400 font-bold">{avgVib} mm/s</span></div>
-        <div>AVG TEMP: <span className="text-amber-400 font-bold">{avgTemp}°C</span></div>
-        <div>ISO 10816-3 SEVERITY EVALUATION</div>
       </div>
     </div>
   );

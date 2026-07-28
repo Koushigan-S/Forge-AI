@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef } from 'react';
-import { Sliders, Upload, RefreshCw, AlertCircle, Play, Layers, CheckCircle2, RotateCcw } from 'lucide-react';
+import { Sliders, Upload, RefreshCw, AlertCircle, FileText, CheckCircle2 } from 'lucide-react';
 
 interface TelemetryFormProps {
   telemetry: {
@@ -26,25 +26,6 @@ export default function TelemetryForm({
   const [dragActive, setDragActive] = useState(false);
   const [uploadedFileName, setUploadedFileName] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const applyPreset = (preset: 'nominal' | 'warning' | 'critical') => {
-    if (preset === 'nominal') {
-      onChange('temperature', 38.5);
-      onChange('vibration', 1.4);
-      onChange('current', 11.8);
-      onChange('rpm', 1790);
-    } else if (preset === 'warning') {
-      onChange('temperature', 68.5);
-      onChange('vibration', 4.8);
-      onChange('current', 22.0);
-      onChange('rpm', 1780);
-    } else if (preset === 'critical') {
-      onChange('temperature', 104.0);
-      onChange('vibration', 11.5);
-      onChange('current', 41.5);
-      onChange('rpm', 3450);
-    }
-  };
 
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
@@ -81,47 +62,28 @@ export default function TelemetryForm({
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 w-full">
-      {/* Left 7 Columns: Telemetry Controls & Presets */}
-      <div className="lg:col-span-7 industrial-card p-5 rounded-xl border border-neutral-800 space-y-4">
-        {/* Header Bar */}
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full">
+      {/* Column 1: Manual Telemetry Sliders */}
+      <div className="glass-panel p-6 rounded-2xl space-y-5 border border-neutral-800 relative overflow-hidden">
         <div className="flex items-center justify-between border-b border-neutral-800 pb-3">
           <div className="flex items-center gap-2">
-            <Sliders className="w-4 h-4 text-cyan-400" />
-            <h2 className="text-sm font-semibold text-neutral-100 uppercase tracking-wider font-mono">
-              Telemetry Parameters
+            <Sliders className="w-5 h-5 text-cyan-400" />
+            <h2 className="text-base font-semibold text-neutral-100 tracking-wide">
+              Manual Telemetry Controls
             </h2>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="text-[10px] text-neutral-400 uppercase font-mono mr-1">Scenario Presets:</span>
-            <button
-              onClick={() => applyPreset('nominal')}
-              className="px-2.5 py-1 text-[11px] font-mono rounded bg-emerald-950/60 text-emerald-400 border border-emerald-800/80 hover:bg-emerald-900/60 transition-colors"
-            >
-              Nominal
-            </button>
-            <button
-              onClick={() => applyPreset('warning')}
-              className="px-2.5 py-1 text-[11px] font-mono rounded bg-amber-950/60 text-amber-400 border border-amber-800/80 hover:bg-amber-900/60 transition-colors"
-            >
-              Warning
-            </button>
-            <button
-              onClick={() => applyPreset('critical')}
-              className="px-2.5 py-1 text-[11px] font-mono rounded bg-rose-950/60 text-rose-400 border border-rose-800/80 hover:bg-rose-900/60 transition-colors"
-            >
-              Critical
-            </button>
-          </div>
+          <span className="text-[11px] font-mono text-neutral-400 bg-neutral-900 px-2 py-0.5 rounded-full border border-neutral-800">
+            LIVE INPUT PARAMETERS
+          </span>
         </div>
 
-        {/* Sliders Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
-          {/* Temperature */}
-          <div className="bg-neutral-900/70 p-3 rounded-lg border border-neutral-800/80 space-y-2">
+        <div className="space-y-4">
+          {/* Temperature Slider */}
+          <div className="space-y-1.5">
             <div className="flex justify-between items-center text-xs">
-              <span className="text-neutral-300 font-medium font-mono text-[11px]">Stator Temperature</span>
-              <div className="flex items-center gap-1">
+              <label className="text-neutral-300 font-medium">Temperature (°C)</label>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-mono font-bold text-amber-400">{telemetry.temperature}°C</span>
                 <input
                   type="number"
                   min={20}
@@ -129,9 +91,8 @@ export default function TelemetryForm({
                   step={0.5}
                   value={telemetry.temperature}
                   onChange={(e) => onChange('temperature', parseFloat(e.target.value) || 20)}
-                  className="w-14 bg-neutral-950 border border-neutral-750 rounded px-1.5 py-0.5 text-xs text-right font-mono text-amber-400 font-bold focus:border-amber-500 outline-none"
+                  className="w-16 bg-neutral-900 border border-neutral-800 rounded px-1.5 py-0.5 text-xs text-right font-mono focus:border-cyan-400 outline-none text-neutral-200"
                 />
-                <span className="text-[11px] text-neutral-400 font-mono">°C</span>
               </div>
             </div>
             <input
@@ -141,19 +102,20 @@ export default function TelemetryForm({
               step={0.5}
               value={telemetry.temperature}
               onChange={(e) => onChange('temperature', parseFloat(e.target.value))}
-              className="w-full accent-amber-400"
+              className="w-full h-1.5 bg-neutral-800 rounded-lg appearance-none cursor-pointer accent-amber-400"
             />
-            <div className="flex justify-between text-[9px] font-mono text-neutral-500">
+            <div className="flex justify-between text-[10px] font-mono text-neutral-500">
               <span>20°C (Nominal)</span>
-              <span>120°C (Max)</span>
+              <span>120°C (Extreme)</span>
             </div>
           </div>
 
-          {/* Vibration */}
-          <div className="bg-neutral-900/70 p-3 rounded-lg border border-neutral-800/80 space-y-2">
+          {/* Vibration Slider */}
+          <div className="space-y-1.5">
             <div className="flex justify-between items-center text-xs">
-              <span className="text-neutral-300 font-medium font-mono text-[11px]">Vibration Velocity</span>
-              <div className="flex items-center gap-1">
+              <label className="text-neutral-300 font-medium">Vibration Velocity (mm/s)</label>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-mono font-bold text-cyan-400">{telemetry.vibration} mm/s</span>
                 <input
                   type="number"
                   min={0}
@@ -161,9 +123,8 @@ export default function TelemetryForm({
                   step={0.1}
                   value={telemetry.vibration}
                   onChange={(e) => onChange('vibration', parseFloat(e.target.value) || 0)}
-                  className="w-14 bg-neutral-950 border border-neutral-750 rounded px-1.5 py-0.5 text-xs text-right font-mono text-cyan-400 font-bold focus:border-cyan-500 outline-none"
+                  className="w-16 bg-neutral-900 border border-neutral-800 rounded px-1.5 py-0.5 text-xs text-right font-mono focus:border-cyan-400 outline-none text-neutral-200"
                 />
-                <span className="text-[11px] text-neutral-400 font-mono">mm/s</span>
               </div>
             </div>
             <input
@@ -173,19 +134,20 @@ export default function TelemetryForm({
               step={0.1}
               value={telemetry.vibration}
               onChange={(e) => onChange('vibration', parseFloat(e.target.value))}
-              className="w-full accent-cyan-400"
+              className="w-full h-1.5 bg-neutral-800 rounded-lg appearance-none cursor-pointer accent-cyan-400"
             />
-            <div className="flex justify-between text-[9px] font-mono text-neutral-500">
-              <span>0.0 mm/s (ISO Class I)</span>
+            <div className="flex justify-between text-[10px] font-mono text-neutral-500">
+              <span>0.0 mm/s</span>
               <span>15.0 mm/s</span>
             </div>
           </div>
 
-          {/* Current */}
-          <div className="bg-neutral-900/70 p-3 rounded-lg border border-neutral-800/80 space-y-2">
+          {/* Current Slider */}
+          <div className="space-y-1.5">
             <div className="flex justify-between items-center text-xs">
-              <span className="text-neutral-300 font-medium font-mono text-[11px]">Motor Current</span>
-              <div className="flex items-center gap-1">
+              <label className="text-neutral-300 font-medium">Motor Current (Amperes)</label>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-mono font-bold text-emerald-400">{telemetry.current} A</span>
                 <input
                   type="number"
                   min={5}
@@ -193,9 +155,8 @@ export default function TelemetryForm({
                   step={0.5}
                   value={telemetry.current}
                   onChange={(e) => onChange('current', parseFloat(e.target.value) || 5)}
-                  className="w-14 bg-neutral-950 border border-neutral-750 rounded px-1.5 py-0.5 text-xs text-right font-mono text-emerald-400 font-bold focus:border-emerald-500 outline-none"
+                  className="w-16 bg-neutral-900 border border-neutral-800 rounded px-1.5 py-0.5 text-xs text-right font-mono focus:border-cyan-400 outline-none text-neutral-200"
                 />
-                <span className="text-[11px] text-neutral-400 font-mono">A</span>
               </div>
             </div>
             <input
@@ -205,19 +166,20 @@ export default function TelemetryForm({
               step={0.5}
               value={telemetry.current}
               onChange={(e) => onChange('current', parseFloat(e.target.value))}
-              className="w-full accent-emerald-400"
+              className="w-full h-1.5 bg-neutral-800 rounded-lg appearance-none cursor-pointer accent-emerald-400"
             />
-            <div className="flex justify-between text-[9px] font-mono text-neutral-500">
-              <span>5.0 A (Idle)</span>
-              <span>50.0 A (Overload)</span>
+            <div className="flex justify-between text-[10px] font-mono text-neutral-500">
+              <span>5 A</span>
+              <span>50 A</span>
             </div>
           </div>
 
-          {/* RPM */}
-          <div className="bg-neutral-900/70 p-3 rounded-lg border border-neutral-800/80 space-y-2">
+          {/* RPM Slider */}
+          <div className="space-y-1.5">
             <div className="flex justify-between items-center text-xs">
-              <span className="text-neutral-300 font-medium font-mono text-[11px]">Shaft Speed</span>
-              <div className="flex items-center gap-1">
+              <label className="text-neutral-300 font-medium">Rotational Speed (RPM)</label>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-mono font-bold text-purple-400">{telemetry.rpm} RPM</span>
                 <input
                   type="number"
                   min={500}
@@ -225,9 +187,8 @@ export default function TelemetryForm({
                   step={50}
                   value={telemetry.rpm}
                   onChange={(e) => onChange('rpm', parseFloat(e.target.value) || 500)}
-                  className="w-16 bg-neutral-950 border border-neutral-750 rounded px-1.5 py-0.5 text-xs text-right font-mono text-purple-400 font-bold focus:border-purple-500 outline-none"
+                  className="w-16 bg-neutral-900 border border-neutral-800 rounded px-1.5 py-0.5 text-xs text-right font-mono focus:border-cyan-400 outline-none text-neutral-200"
                 />
-                <span className="text-[11px] text-neutral-400 font-mono">RPM</span>
               </div>
             </div>
             <input
@@ -237,39 +198,37 @@ export default function TelemetryForm({
               step={50}
               value={telemetry.rpm}
               onChange={(e) => onChange('rpm', parseFloat(e.target.value))}
-              className="w-full accent-purple-400"
+              className="w-full h-1.5 bg-neutral-800 rounded-lg appearance-none cursor-pointer accent-purple-400"
             />
-            <div className="flex justify-between text-[9px] font-mono text-neutral-500">
+            <div className="flex justify-between text-[10px] font-mono text-neutral-500">
               <span>500 RPM</span>
               <span>5000 RPM</span>
             </div>
           </div>
         </div>
 
-        {/* Action Sync Button */}
-        <div className="pt-1">
-          <button
-            onClick={onSubmit}
-            disabled={isLoading}
-            className="w-full py-2.5 px-4 rounded-lg bg-cyan-600 hover:bg-cyan-500 active:bg-cyan-700 text-neutral-950 font-bold text-xs uppercase tracking-wider font-mono flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
-          >
-            <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
-            <span>{isLoading ? 'Processing ML Inference...' : 'Run Diagnostic & Twin Sync'}</span>
-          </button>
-        </div>
+        {/* Sync Button */}
+        <button
+          onClick={onSubmit}
+          disabled={isLoading}
+          className="w-full mt-2 py-3 px-4 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-neutral-950 font-bold text-sm shadow-cyan-glow flex items-center justify-center gap-2 transition-all duration-300 disabled:opacity-50"
+        >
+          <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+          <span>{isLoading ? 'Running Inference...' : 'Run Diagnostic & Twin Sync'}</span>
+        </button>
       </div>
 
-      {/* Right 5 Columns: SCADA Batch CSV Import */}
-      <div className="lg:col-span-5 industrial-card p-5 rounded-xl border border-neutral-800 flex flex-col justify-between">
+      {/* Column 2: CSV Batch Upload Drag & Drop Zone */}
+      <div className="glass-panel p-6 rounded-2xl flex flex-col justify-between border border-neutral-800">
         <div className="flex items-center justify-between border-b border-neutral-800 pb-3">
           <div className="flex items-center gap-2">
-            <Upload className="w-4 h-4 text-cyan-400" />
-            <h2 className="text-sm font-semibold text-neutral-100 uppercase tracking-wider font-mono">
-              SCADA Batch Dataset Import
+            <Upload className="w-5 h-5 text-cyan-400" />
+            <h2 className="text-base font-semibold text-neutral-100 tracking-wide">
+              CSV Batch Telemetry Upload
             </h2>
           </div>
-          <span className="text-[10px] font-mono text-neutral-400 bg-neutral-900 px-2 py-0.5 rounded border border-neutral-800">
-            CSV LOGS
+          <span className="text-[11px] font-mono text-neutral-400 bg-neutral-900 px-2 py-0.5 rounded-full border border-neutral-800">
+            BATCH DATASET
           </span>
         </div>
 
@@ -279,10 +238,10 @@ export default function TelemetryForm({
           onDragOver={handleDrag}
           onDrop={handleDrop}
           onClick={() => fileInputRef.current?.click()}
-          className={`my-3 border border-dashed rounded-lg p-5 flex flex-col items-center justify-center text-center cursor-pointer transition-colors ${
+          className={`my-4 border-2 border-dashed rounded-xl p-8 flex flex-col items-center justify-center text-center cursor-pointer transition-all duration-300 ${
             dragActive
-              ? 'border-cyan-400 bg-cyan-950/30'
-              : 'border-neutral-750 hover:border-neutral-600 bg-neutral-900/40'
+              ? 'border-cyan-400 bg-cyan-950/20 shadow-cyan-glow'
+              : 'border-neutral-700 hover:border-neutral-500 bg-neutral-900/30'
           }`}
         >
           <input
@@ -293,27 +252,32 @@ export default function TelemetryForm({
             className="hidden"
           />
 
-          <Upload className="w-5 h-5 text-cyan-400 mb-1.5" />
-          <span className="text-xs font-semibold text-neutral-200">
-            Import Industrial CSV Sensor Stream
-          </span>
-          <span className="text-[10px] text-neutral-400 font-mono mt-0.5">
-            Columns: temperature, vibration, current, rpm
-          </span>
+          <div className="p-3 bg-neutral-900 rounded-full border border-neutral-800 mb-3 text-cyan-400">
+            <Upload className="w-6 h-6" />
+          </div>
+
+          <h3 className="text-sm font-semibold text-neutral-200">
+            Drag & Drop Telemetry CSV File
+          </h3>
+          <p className="text-xs text-neutral-400 mt-1 max-w-xs">
+            Supports columns: <code className="text-cyan-400">temperature</code>,{' '}
+            <code className="text-cyan-400">vibration</code>, <code className="text-cyan-400">current</code>,{' '}
+            <code className="text-cyan-400">rpm</code>
+          </p>
 
           {uploadedFileName && (
-            <div className="mt-2 text-[11px] font-mono text-emerald-400 bg-emerald-950/60 border border-emerald-800 px-2.5 py-1 rounded flex items-center gap-1.5">
-              <CheckCircle2 className="w-3.5 h-3.5" />
+            <div className="mt-4 flex items-center gap-2 text-xs font-mono text-emerald-400 bg-emerald-950/40 border border-emerald-800 px-3 py-1.5 rounded-lg">
+              <CheckCircle2 className="w-4 h-4" />
               <span>Loaded: {uploadedFileName}</span>
             </div>
           )}
         </div>
 
-        <div className="bg-neutral-900/80 rounded-lg p-2.5 border border-neutral-800 text-[11px] text-neutral-400 font-mono flex items-start gap-2">
-          <AlertCircle className="w-3.5 h-3.5 text-amber-400 shrink-0 mt-0.5" />
-          <span>
-            Batch import runs time-series regression across historical frames and updates ISO anomaly thresholds automatically.
-          </span>
+        <div className="bg-neutral-900/60 rounded-xl p-3 border border-neutral-800/80 flex items-start gap-2.5">
+          <AlertCircle className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
+          <div className="text-xs text-neutral-400 leading-relaxed">
+            <span className="font-semibold text-neutral-300">Automated Pipeline:</span> Uploading a time-series CSV automatically parses historical sensor readings, updates the analytics chart, and runs ML inference on the latest batch frame.
+          </div>
         </div>
       </div>
     </div>
