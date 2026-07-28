@@ -28,9 +28,10 @@ export default function TelemetryForm({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const applyOptimalPresets = () => {
-    onChange('temperature', 20.0);
-    onChange('vibration', 0.0);
-    onChange('current', 5.0);
+    // Realistic healthy operational parameters (87-90% Health Score range)
+    onChange('temperature', 38.0);
+    onChange('vibration', 1.2);
+    onChange('current', 10.0);
     onChange('rpm', 1800.0);
     // Trigger sync after state update
     setTimeout(() => onSubmit(), 100);
@@ -72,7 +73,7 @@ export default function TelemetryForm({
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full">
-      {/* Column 1: Manual Telemetry Sliders */}
+      {/* Column 1: Manual Telemetry Controls */}
       <div className="glass-panel p-6 rounded-2xl space-y-5 border border-neutral-800 relative overflow-hidden">
         <div className="flex flex-wrap items-center justify-between border-b border-neutral-800 pb-3 gap-2">
           <div className="flex items-center gap-2">
@@ -86,10 +87,10 @@ export default function TelemetryForm({
             <button
               onClick={applyOptimalPresets}
               className="flex items-center gap-1.5 text-[11px] font-mono font-bold text-emerald-400 bg-emerald-950/60 border border-emerald-800/80 px-2.5 py-1 rounded-full hover:bg-emerald-900/80 transition-all shadow-sm"
-              title="Set optimal telemetry parameters for 100% Health Score"
+              title="Set realistic optimal operational parameters for 88% Health Score"
             >
               <Sparkles className="w-3.5 h-3.5" />
-              <span>Set Max Health (100%)</span>
+              <span>Set Optimal Baseline (88%)</span>
             </button>
           </div>
         </div>
@@ -122,8 +123,9 @@ export default function TelemetryForm({
               className="w-full h-1.5 bg-neutral-800 rounded-lg appearance-none cursor-pointer accent-amber-400"
             />
             <div className="flex justify-between text-[10px] font-mono text-neutral-500">
-              <span>20°C (Optimal Min)</span>
-              <span>120°C (Extreme Max)</span>
+              <span>20°C (Min)</span>
+              <span>38°C (Healthy)</span>
+              <span>120°C (Extreme)</span>
             </div>
           </div>
 
@@ -154,8 +156,9 @@ export default function TelemetryForm({
               className="w-full h-1.5 bg-neutral-800 rounded-lg appearance-none cursor-pointer accent-cyan-400"
             />
             <div className="flex justify-between text-[10px] font-mono text-neutral-500">
-              <span>0.0 mm/s (Optimal Min)</span>
-              <span>15.0 mm/s (Extreme Max)</span>
+              <span>0.0 mm/s</span>
+              <span>1.2 mm/s (Healthy)</span>
+              <span>15.0 mm/s (Extreme)</span>
             </div>
           </div>
 
@@ -186,8 +189,9 @@ export default function TelemetryForm({
               className="w-full h-1.5 bg-neutral-800 rounded-lg appearance-none cursor-pointer accent-emerald-400"
             />
             <div className="flex justify-between text-[10px] font-mono text-neutral-500">
-              <span>5 A (Optimal Min)</span>
-              <span>50 A (Extreme Max)</span>
+              <span>5 A</span>
+              <span>10 A (Healthy)</span>
+              <span>50 A (Extreme)</span>
             </div>
           </div>
 
@@ -218,8 +222,9 @@ export default function TelemetryForm({
               className="w-full h-1.5 bg-neutral-800 rounded-lg appearance-none cursor-pointer accent-purple-400"
             />
             <div className="flex justify-between text-[10px] font-mono text-neutral-500">
-              <span>500 RPM (Nominal)</span>
-              <span>3000 RPM (High Threshold)</span>
+              <span>500 RPM</span>
+              <span>1800 RPM (Nominal)</span>
+              <span>5000 RPM</span>
             </div>
           </div>
         </div>
